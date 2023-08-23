@@ -105,15 +105,15 @@ install:	install_users
 debinstall:	install_dirs install_files
 
 install_users:
-	if ! groups xcauth > /dev/null 2>&1; then \
-		@if [ "$(DISTRIBUTION)" = "alpine" ]; then \
+	@if ! groups xcauth > /dev/null 2>&1; then \
+		if [ "$(DISTRIBUTION)" = "alpine" ]; then \
 			addgroup xcauth; \
 			adduser -D -S -h ${DBDIR} -G ${CUSER} -s /sbin/nologin -g "XMPP Cloud Authentication" ${CUSER}; \
 		elif [ "$(DISTRIBUTION)" = "debian" ]; then \
-			adduser --system --group --home ${DBDIR} --gecos "XMPP Cloud Authentication" ${CUSER}; 
+			adduser --system --group --home ${DBDIR} --gecos "XMPP Cloud Authentication" ${CUSER}; \
 		else \
 			echo "Unsupported distribution for adding user"; \
-		fi
+		fi \
 	fi
 	# These group additions are no longer necessary for systemd mode,
 	# but still if someone wants to run xcauth the old (subprocess) mode.
