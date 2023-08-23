@@ -137,7 +137,16 @@ install_dirs:
 	  chown ${CUSER}:${CUSER} ${DESTDIR}${LOGDIR} ${DESTDIR}${DBDIR}; \
 	fi
 
-install_files:	install_dirs
+install_files: install_dirs
+	@if [ "$(DISTRIBUTION)" = "alpine" ]; then \
+		$(MAKE) install_files_alpine; \
+	elif [ "$(DISTRIBUTION)" = "debian" ]; then \
+		$(MAKE) install_files_debian; \
+	else \
+		echo "Unsupported distribution for installing files"; \
+	fi
+
+install_files_debian:	install_dirs
 	install -C -m 755 -T xcauth.py ${DESTDIR}${SBINDIR}/${MODULE}
 	install -C -m 755 -T tools/xcrestart.sh ${DESTDIR}${SBINDIR}/xcrestart
 	install -C -m 755 -T tools/xcrefreshroster.sh ${DESTDIR}${SBINDIR}/xcrefreshroster
@@ -161,6 +170,31 @@ install_files:	install_dirs
 	  install -C -m 640 xcauth.conf ${DESTDIR}${ETCDIR}; \
 	fi
 	install -C -m 644 -t ${DESTDIR}${SDSDIR} systemd/*.service systemd/*.socket
+
+install_files_alpine:	install_dirs
+	install  -m 755  xcauth.py ${DESTDIR}${SBINDIR}/${MODULE}
+	install  -m 755  tools/xcrestart.sh ${DESTDIR}${SBINDIR}/xcrestart
+	install  -m 755  tools/xcrefreshroster.sh ${DESTDIR}${SBINDIR}/xcrefreshroster
+	install  -m 755  tools/xcdeluser.sh ${DESTDIR}${SBINDIR}/xcdeluser
+	install  -m 755  tools/xcdelgroup.sh ${DESTDIR}${SBINDIR}/xcdelgroup
+	install  -m 755  tools/xcdelhost.sh ${DESTDIR}${SBINDIR}/xcdelhost
+	install  -m 755  tools/xcejabberdctl.sh ${DESTDIR}${SBINDIR}/xcejabberdctl
+	install  -m 440  tools/xcauth.sudo ${DESTDIR}${SU_DIR}/xcauth
+	install  -m 644  tools/xcauth.logrotate ${DESTDIR}${LRTDIR}/${MODULE}
+	install  -m 644  prosody-modules/mod_auth_external.lua ${DESTDIR}${MODDIR}/mod_auth_external.lua-xcauth-version
+	install  -m 644  prosody-modules/mod_auth_socket.lua ${DESTDIR}${MODDIR}/mod_auth_socket.lua
+	install  -m 644  prosody-modules/pseudolpty.lib.lua ${DESTDIR}${MODDIR}/pseudolpty.lib.lua
+	install  -m 644  tools/ejabberd.yml ${DESTDIR}${JABDIR}/ejabberd.yml-xcauth-example
+	install  -m 644  tools/dhparams.pem.md ${DESTDIR}${JABDIR}/dhparams.pem-xcauth-example
+	install  -m 644  ${DESTDIR}${LIBDIR} xclib/*.py
+	install  -m 644  ${DESTDIR}${DOCDIR} *.md LICENSE
+	install  -m 644  ${DESTDIR}${DOCDIR} doc/*.md doc/SystemDiagram.svg
+	if group ${CUSER} > /dev/null 2>&1; then \
+	  install  -m 640 -o ${CUSER} -g ${CUSER} xcauth.conf ${DESTDIR}${ETCDIR}; \
+	else \
+	  install  -m 640 xcauth.conf ${DESTDIR}${ETCDIR}; \
+	fi
+	install  -m 644 -t ${DESTDIR}${SDSDIR} systemd/*.service systemd/*.socket
 
 compile_python:	install_files
 	python3 -m compileall ${DESTDIR}${LIBDIR}
