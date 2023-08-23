@@ -186,9 +186,9 @@ install_files_alpine:	install_dirs
 	install  -m 644  prosody-modules/pseudolpty.lib.lua ${DESTDIR}${MODDIR}/pseudolpty.lib.lua
 	install  -m 644  tools/ejabberd.yml ${DESTDIR}${JABDIR}/ejabberd.yml-xcauth-example
 	install  -m 644  tools/dhparams.pem.md ${DESTDIR}${JABDIR}/dhparams.pem-xcauth-example
-	install  -m 644  ${DESTDIR}${LIBDIR} xclib/*.py
-	install  -m 644  ${DESTDIR}${DOCDIR} *.md LICENSE
-	install  -m 644  ${DESTDIR}${DOCDIR} doc/*.md doc/SystemDiagram.svg
+	install  -m 644 -t ${DESTDIR}${LIBDIR} xclib/*.py
+	install  -m 644 -t ${DESTDIR}${DOCDIR} *.md LICENSE
+	install  -m 644 -t ${DESTDIR}${DOCDIR} doc/*.md doc/SystemDiagram.svg
 	if group ${CUSER} > /dev/null 2>&1; then \
 	  install  -m 640 -o ${CUSER} -g ${CUSER} xcauth.conf ${DESTDIR}${ETCDIR}; \
 	else \
