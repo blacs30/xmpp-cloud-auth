@@ -20,6 +20,25 @@ DESTDIR		=
 
 # Automatic
 VERSION		= $(shell git describe | sed 's/^v//')
+########################################################
+# Check DISTRIBUTION
+########################################################
+ifeq ($(shell test -e /etc/os-release && echo yes),yes)
+    ifeq ($(shell grep -q "alpine" /etc/os-release && echo yes),yes)
+        DISTRIBUTION = alpine
+    else ifeq ($(shell grep -q "debian" /etc/os-release && echo yes),yes)
+        DISTRIBUTION = debian
+    else
+        DISTRIBUTION = unknown
+    endif
+else
+    DISTRIBUTION = undetermined
+endif
+
+export DISTRIBUTION
+
+check_distribution:
+    @echo "Detected distribution: $(DISTRIBUTION)"
 
 ########################################################
 # Compiling
@@ -87,7 +106,14 @@ debinstall:	install_dirs install_files
 
 install_users:
 	if ! groups xcauth > /dev/null 2>&1; then \
-	  adduser --system --group --home ${DBDIR} --gecos "XMPP Cloud Authentication" ${CUSER}; \
+		@if [ "$(DISTRIBUTION)" = "alpine" ]; then \
+			addgroup xcauth; \
+			adduser -D -S -h ${DBDIR} -G ${CUSER} -s /sbin/nologin -g "XMPP Cloud Authentication" ${CUSER}; \
+		elif [ "$(DISTRIBUTION)" = "debian" ]; then \
+			adduser --system --group --home ${DBDIR} --gecos "XMPP Cloud Authentication" ${CUSER}; 
+		else \
+			echo "Unsupported distribution for adding user"; \
+		fi
 	fi
 	# These group additions are no longer necessary for systemd mode,
 	# but still if someone wants to run xcauth the old (subprocess) mode.
